@@ -1,0 +1,56 @@
+# Default config for Panorama
+
+[power]
+refresh_interval_seconds = 5
+
+[[power.phases]]
+name = "almost_empty"
+from = 0
+to = 5
+
+[power.phases.alert]
+severity = "critical"
+on_startup = true
+repeat_after_seconds = 180
+summary = "Battery is almost empty! (${capacity}%)"
+
+[[power.phases]]
+name = "low"
+from = 6
+to = 20
+
+[power.phases.alert]
+severity = "warning"
+on_startup = true
+repeat_after_seconds = 600
+expire_after_seconds = 60
+summary = "Battery is low! (${capacity}%)"
+
+[[power.phases]]
+name = "draining"
+from = 21
+to = 40
+
+[power.phases.alert]
+severity = "info"
+on_startup = true
+repeat_after_seconds = 1200
+expire_after_seconds = 10
+summary = "Battery is getting low. (${capacity}%)"
+
+[[power.phases]]
+name = "full"
+from = 41
+to = 99
+
+[power.alert_battery_activated]
+severity = "info"
+on_startup = true
+summary = "Unplugged - switched to battery"
+
+[power.alert_battery_deactivated]
+severity = "info"
+on_startup = true
+expire_after_seconds = 10
+summary = "Plugged in! Battery is charging."
+

@@ -1,0 +1,21 @@
+[package]
+name = "panoramas"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "panorama"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { version = "1.0.75", features = ["backtrace"] }
+serde = "1.0.189"
+serde_derive = "1.0.189"
+toml = "0.8.2"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter", "fmt"] }
+
+# [profile.release]
+# debug = 1
