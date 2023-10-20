@@ -28,6 +28,11 @@
 
           cargoLock.lockFile = ./Cargo.lock;
 
+          runtimeDependencies = with pkgs; [
+            # Needed for the notify-send command.
+            libnotify
+          ];
+
           # meta = with pkgs.stdenv.lib; {
           #   description = "Notification daemon for Linux desktop systems.";
           #   homepage = "https://github.com/theduke/panorama";
@@ -50,8 +55,8 @@
           buildInputs = with pkgs; [
             git-cliff
             cargo-udeps
+            libnotify
           ];
-          runtimeDependencies = with pkgs; [ ];
         };
       }
     );
