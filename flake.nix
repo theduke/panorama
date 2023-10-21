@@ -1,5 +1,5 @@
 {
-  description = "app";
+  description = "panorama - a system status notification daemon for Linux desktop systems";
 
   inputs = {
     flakeutils = {

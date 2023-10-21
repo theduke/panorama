@@ -1,5 +1,6 @@
 [package]
 name = "panoramas"
+description = "Linux system status notification daemon"
 version = "0.1.0"
 edition = "2021"
 
