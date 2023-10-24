@@ -42,13 +42,13 @@ power:
     on_startup: true
     repeat_after_seconds: null
     expire_after_seconds: null
-    summary: Unplugged - switched to battery
+    summary: Unplugged - switched to battery (${capacity}%)
     message: null
   alert_battery_deactivated:
     severity: info
     on_startup: true
     repeat_after_seconds: null
     expire_after_seconds: 10
-    summary: Plugged in! Battery is charging.
+    summary: Plugged in! Battery is charging (${capacity}%)
     message: null
 
