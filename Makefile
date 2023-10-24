@@ -11,7 +11,7 @@ changelog:
 fix: fmt clippyfix
 
 dump-default-config:
-	cargo run -- --dump-default-config > config.toml
+	cargo run -- --dump-default-config > config.yaml
 
 check-fmt:
 	@echo Checking formatting...
@@ -34,7 +34,7 @@ check-unused-deps:
 
 check-sample-config:
 	@echo "Checking for outdated sample config..."
-	cargo run -- --dump-default-config | diff config.toml -
+	cargo run -- --dump-default-config | diff config.yaml -
 	@echo "Sample config is up to date!"
 
 lint: check-fmt check-clippy check-sample-config check-unused-deps
