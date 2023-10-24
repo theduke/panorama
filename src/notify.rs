@@ -27,7 +27,12 @@ impl Notifier {
         }
     }
 
-    pub fn notify(&self, alert: &Alert, group: Option<&str>) -> Result<(), anyhow::Error> {
+    pub fn notify(
+        &self,
+        alert: &Alert,
+        group: Option<&str>,
+        variables: &HashMap<String, String>,
+    ) -> Result<(), anyhow::Error> {
         let urgency = match alert.severity {
             AlertSeverity::Info => NotifyUrgency::Low,
             AlertSeverity::Warning => NotifyUrgency::Normal,
@@ -35,7 +40,23 @@ impl Notifier {
         };
 
         let mut cmd = Command::new("notify-send");
-        cmd.arg(&alert.summary)
+
+        let mut summary = alert.summary.clone();
+
+        for (key, value) in variables {
+            summary = summary.replace(&format!("${{{}}}", key), value);
+        }
+        let message = if let Some(msg) = &alert.message {
+            let mut msg = msg.clone();
+            for (key, value) in variables {
+                msg = msg.replace(&format!("${{{}}}", key), value);
+            }
+            Some(msg)
+        } else {
+            None
+        };
+
+        cmd
             // Print the notification ID so it can be replaced.
             .arg("--print-id")
             .args(["--app-name", "Panorama"])
@@ -50,6 +71,11 @@ impl Notifier {
             if let Some(old_id) = old_id {
                 cmd.arg(format!("--replace-id={old_id}"));
             }
+        }
+
+        cmd.arg(summary);
+        if let Some(message) = message {
+            cmd.arg(message);
         }
 
         let out = cmd.output().context("could not execute 'notify-send'")?;

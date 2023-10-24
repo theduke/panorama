@@ -117,7 +117,7 @@ impl PowerConfig {
             severity: AlertSeverity::Info,
             on_startup: true,
             repeat_after_seconds: None,
-            summary: "Unplugged - switched to battery".to_string(),
+            summary: "Unplugged - switched to battery (${capacity}%)".to_string(),
             message: None,
             expire_after_seconds: None,
         })
@@ -128,7 +128,7 @@ impl PowerConfig {
             severity: AlertSeverity::Info,
             on_startup: true,
             repeat_after_seconds: None,
-            summary: "Plugged in! Battery is charging.".to_string(),
+            summary: "Plugged in! Battery is charging (${capacity}%)".to_string(),
             message: None,
             expire_after_seconds: Some(10),
         })

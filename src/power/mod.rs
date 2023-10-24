@@ -59,30 +59,39 @@ impl PowerManager {
         let ac = supplies.iter().find_map(|s| s.kind.as_main());
         let ac_online = ac.map(|s| s.online).unwrap_or(false);
 
+        // TODO: support multiple batteries.
+        let battery_opt = supplies
+            .iter()
+            .find_map(|s| match &s.kind {
+                PowerSupplyType::Battery(b) => Some((s, b)),
+                PowerSupplyType::Main(_) => None,
+            })
+            .map(|x| x.1);
+
+        let mut variables = std::collections::HashMap::new();
+        if let Some(bat) = &battery_opt {
+            variables.insert("capacity".to_string(), bat.capacity.to_string());
+        }
+
         if ac_online && self.mode != PowerMode::PluggedIn {
             tracing::trace!("power mode changed to plugged in");
             self.mode = PowerMode::PluggedIn;
             if let Some(alert) = &self.config.alert_battery_deactivated {
-                self.notifier.notify(alert, Some(ALERT_GROUP_BATTERY))?;
+                self.notifier
+                    .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
             }
         } else if !ac_online && self.mode != PowerMode::Battery {
             tracing::trace!("power mode changed to battery");
             self.mode = PowerMode::Battery;
 
             if let Some(alert) = &self.config.alert_battery_activated {
-                self.notifier.notify(alert, Some(ALERT_GROUP_BATTERY))?;
+                self.notifier
+                    .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
             }
         }
 
         if self.mode == PowerMode::Battery {
-            // TODO: support multiple batteries.
-            let (_, bat) = supplies
-                .iter()
-                .find_map(|s| match &s.kind {
-                    PowerSupplyType::Battery(b) => Some((s, b)),
-                    PowerSupplyType::Main(_) => None,
-                })
-                .unwrap();
+            let bat = battery_opt.as_ref().unwrap();
 
             let phase = self
                 .config
@@ -96,7 +105,8 @@ impl PowerManager {
                         status.enter(&new.name);
 
                         if let Some(alert) = &new.alert {
-                            self.notifier.notify(alert, Some(ALERT_GROUP_BATTERY))?;
+                            self.notifier
+                                .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
                         }
                     } else {
                         let now = SystemTime::now();
@@ -107,7 +117,11 @@ impl PowerManager {
                         if let Some(alert) = &new.alert {
                             if let Some(repeat_after) = alert.repeat_after_seconds {
                                 if elapsed.as_secs() >= repeat_after {
-                                    self.notifier.notify(alert, Some(ALERT_GROUP_BATTERY))?;
+                                    self.notifier.notify(
+                                        alert,
+                                        Some(ALERT_GROUP_BATTERY),
+                                        &variables,
+                                    )?;
                                     status.last_notified_at = Some(now);
                                 }
                             }
@@ -123,7 +137,8 @@ impl PowerManager {
                     self.battery_phase = Some(status);
 
                     if let Some(alert) = &new.alert {
-                        self.notifier.notify(alert, Some(ALERT_GROUP_BATTERY))?;
+                        self.notifier
+                            .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
                     }
                 }
                 (None, Some(_status)) => {
