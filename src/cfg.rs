@@ -31,8 +31,20 @@ impl Config {
     pub fn load_from_path(path: &std::path::Path) -> Result<Self, anyhow::Error> {
         let content = std::fs::read_to_string(path)
             .with_context(|| format!("Failed to read config file at '{}'", path.display()))?;
-        let config = toml::from_str(&content)
-            .with_context(|| format!("Failed to parse config file at '{}'", path.display()))?;
+
+        let ext = path.extension().and_then(|x| x.to_str());
+        let config = match ext {
+            Some("yaml") => serde_yaml::from_str::<Self>(&content)
+                .with_context(|| format!("Failed to parse config file at '{}'", path.display()))?,
+            Some("toml") => toml::from_str::<Self>(&content)
+                .with_context(|| format!("Failed to parse config file at '{}'", path.display()))?,
+            _ => {
+                return Err(anyhow::anyhow!(
+                "Failed to parse config file at '{}': unknown extension - expected .toml or .yaml",
+                path.display()
+            ))
+            }
+        };
         Ok(config)
     }
 

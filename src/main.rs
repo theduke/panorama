@@ -67,7 +67,7 @@ USAGE:
         }
         if self.dump_default_config {
             let config = Config::default();
-            let content = toml::to_string_pretty(&config)?;
+            let content = serde_yaml::to_string(&config)?;
             println!("# Default config for panorama\n\n{content}");
             return Ok(());
         }
@@ -90,12 +90,19 @@ USAGE:
                 .expect("failed to determine home dir")
                 .join(".config")
                 .join("panorama")
-                .join("config.toml");
+                .join("config");
 
-            if default_path.is_file() {
+            let toml = default_path.with_extension("toml");
+
+            if toml.is_file() {
                 Some(default_path)
             } else {
-                None
+                let yaml = default_path.with_extension("yaml");
+                if yaml.is_file() {
+                    Some(default_path)
+                } else {
+                    None
+                }
             }
         };
 
