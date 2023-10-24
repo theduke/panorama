@@ -18,6 +18,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Install cargo-udeps
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-udeps
+
     - name: Lint
       run: make lint
 
