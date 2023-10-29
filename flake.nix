@@ -54,8 +54,10 @@
           src = self;
           buildInputs = with pkgs; [
             git-cliff
-            cargo-udeps
             libnotify
+
+            cargo-udeps
+            cargo-deny
           ];
         };
       }
