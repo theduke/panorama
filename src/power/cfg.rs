@@ -4,6 +4,8 @@ use crate::cfg::{Alert, AlertSeverity};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PowerConfig {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
     pub refresh_interval_seconds: u64,
     #[serde(default = "PowerConfig::default_phases")]
     pub phases: Vec<BatteryPhase>,
@@ -138,12 +140,17 @@ impl PowerConfig {
 impl Default for PowerConfig {
     fn default() -> Self {
         Self {
+            enabled: default_true(),
             refresh_interval_seconds: Self::default_refresh_interval_seconds(),
             phases: Self::default_phases(),
             alert_battery_activated: Self::default_alert_battery_activated(),
             alert_battery_deactivated: Self::default_alert_battery_deactivated(),
         }
     }
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
