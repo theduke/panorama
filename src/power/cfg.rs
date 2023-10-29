@@ -6,6 +6,7 @@ use crate::cfg::{Alert, AlertSeverity};
 pub struct PowerConfig {
     #[serde(default = "default_true")]
     pub enabled: bool,
+    #[serde(default = "PowerConfig::default_refresh_interval_seconds")]
     pub refresh_interval_seconds: u64,
     #[serde(default = "PowerConfig::default_phases")]
     pub phases: Vec<BatteryPhase>,
@@ -119,7 +120,7 @@ impl PowerConfig {
             severity: AlertSeverity::Info,
             on_startup: true,
             repeat_after_seconds: None,
-            summary: "Unplugged - switched to battery (${capacity}%)".to_string(),
+            summary: "Unplugged - using battery (${capacity}%)".to_string(),
             message: None,
             expire_after_seconds: None,
         })
