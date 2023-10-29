@@ -12,12 +12,16 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = { version = "1.0.75", features = ["backtrace"] }
+# dnsclient = { version = "0.1.18", default-features = false }
+# rand = "0.8.5"
 serde = "1.0.189"
 serde_derive = "1.0.189"
 serde_yaml = "0.9.25"
 toml = "0.8.2"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "fmt"] }
+ureq = {version = "2.8.0", default-features = false, features = ["tls", "rustls"]}
+url = { version = "2.4.1", features = ["serde"] }
 
 # [profile.release]
 # debug = 1

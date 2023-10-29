@@ -1,7 +1,7 @@
 use anyhow::Context;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::power::cfg::PowerConfig;
+use crate::{internet::cfg::OnlineConfig, power::cfg::PowerConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -25,6 +25,8 @@ pub struct Alert {
 pub struct Config {
     #[serde(default)]
     pub power: PowerConfig,
+    #[serde(default)]
+    pub online: OnlineConfig,
 }
 
 impl Config {

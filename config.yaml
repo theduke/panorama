@@ -1,6 +1,7 @@
 # Default config for panorama
 
 power:
+  enabled: true
   refresh_interval_seconds: 5
   phases:
   - name: almost_empty
@@ -42,7 +43,7 @@ power:
     on_startup: true
     repeat_after_seconds: null
     expire_after_seconds: null
-    summary: Unplugged - switched to battery (${capacity}%)
+    summary: Unplugged - using battery (${capacity}%)
     message: null
   alert_battery_deactivated:
     severity: info
@@ -50,5 +51,34 @@ power:
     repeat_after_seconds: null
     expire_after_seconds: 10
     summary: Plugged in! Battery is charging (${capacity}%)
+    message: null
+online:
+  enabled: true
+  dns_servers: !Custom
+  - 1.1.1.1
+  - 8.8.8.8
+  urls:
+  - url: https://wikipedia.org/
+    body_contains: Wikimedia Foundation
+  - url: https://news.ycombinator.com/
+    body_contains: Hacker News
+  query_domain: google.com
+  check_interval_seconds_online: 30
+  check_interval_seconds_offline: 3
+  retry_count: 2
+  retry_interval_seconds: 5
+  alert_reconnected:
+    severity: info
+    on_startup: false
+    repeat_after_seconds: null
+    expire_after_seconds: 10
+    summary: Internet is reachable!
+    message: null
+  alert_disconnected:
+    severity: critical
+    on_startup: false
+    repeat_after_seconds: null
+    expire_after_seconds: null
+    summary: Internet is unreachable - system appears to be offline!
     message: null
 
