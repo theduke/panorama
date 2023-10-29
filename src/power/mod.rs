@@ -1,7 +1,7 @@
 //! Read power supply information from the system.
 //! See https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
 
-use std::time::SystemTime;
+use std::{panic::catch_unwind, time::SystemTime};
 
 use crate::{notify::Notifier, ResultCallback};
 
@@ -27,7 +27,9 @@ impl PowerManager {
     ) -> Result<(), anyhow::Error> {
         let manager = Self::new(config, notifier)?;
         std::thread::spawn(move || {
-            let res = manager.run();
+            let res = catch_unwind(move || manager.run())
+                .map_err(|_err| anyhow::format_err!("power manager thread panicked"))
+                .and_then(|res| res);
             on_failure(res);
         });
 
