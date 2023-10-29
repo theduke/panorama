@@ -62,6 +62,7 @@ online:
     body_contains: Wikimedia Foundation
   - url: https://news.ycombinator.com/
     body_contains: Hacker News
+  http_timeout_secs: 20
   query_domain: google.com
   check_interval_seconds_online: 30
   check_interval_seconds_offline: 3

@@ -16,6 +16,9 @@ pub struct OnlineConfig {
     #[serde(default = "OnlineConfig::default_urls")]
     pub urls: Vec<CheckUrl>,
 
+    #[serde(default = "OnlineConfig::default_http_timeout_secs")]
+    pub http_timeout_secs: u64,
+
     #[serde(default = "OnlineConfig::default_query_domain")]
     pub query_domain: String,
 
@@ -47,6 +50,10 @@ impl OnlineConfig {
             }
         };
         Ok(self)
+    }
+
+    fn default_http_timeout_secs() -> u64 {
+        20
     }
 
     fn default_urls() -> Vec<CheckUrl> {
@@ -91,6 +98,7 @@ impl Default for OnlineConfig {
     fn default() -> Self {
         Self {
             enabled: true,
+            http_timeout_secs: Self::default_http_timeout_secs(),
             query_domain: Self::default_query_domain(),
             dns_servers: Self::default_dns_servers(),
             check_interval_seconds_online: Self::default_check_interval_seconds_online(),

@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use anyhow::Context;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::{internet::cfg::OnlineConfig, power::cfg::PowerConfig};
+use crate::{internet::cfg::OnlineConfig, notify::PreparedAlert, power::cfg::PowerConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -19,6 +21,20 @@ pub struct Alert {
     pub expire_after_seconds: Option<u64>,
     pub summary: String,
     pub message: Option<String>,
+}
+
+impl Alert {
+    pub fn prepare(
+        &self,
+        group: impl Into<Option<String>>,
+        variables: impl Into<HashMap<String, String>>,
+    ) -> PreparedAlert {
+        PreparedAlert {
+            alert: self.clone(),
+            group: group.into(),
+            variables: variables.into(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
