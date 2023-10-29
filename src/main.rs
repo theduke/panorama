@@ -60,7 +60,7 @@ USAGE:
         Ok(s)
     }
 
-    fn run(self) -> Result<(), anyhow::Error> {
+    async fn run(self) -> Result<(), anyhow::Error> {
         if self.help {
             eprintln!("{}", Self::USAGE);
             return Ok(());
@@ -114,11 +114,12 @@ USAGE:
             Config::default()
         };
 
-        App::start(config)
+        App::run(config).await
     }
 }
 
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     let cli = Cli::parse_env().unwrap();
-    cli.run().unwrap();
+    cli.run().await.unwrap();
 }

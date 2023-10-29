@@ -52,7 +52,13 @@
         devShell = pkgs.stdenv.mkDerivation {
           name = NAME;
           src = self;
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            
+          ];
           buildInputs = with pkgs; [
+            pkg-config
+            systemd
             git-cliff
             libnotify
 

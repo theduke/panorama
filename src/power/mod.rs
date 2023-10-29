@@ -1,9 +1,12 @@
 //! Read power supply information from the system.
 //! See https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
 
-use std::{panic::catch_unwind, time::SystemTime};
+use std::time::SystemTime;
 
-use crate::{notify::Notifier, ResultCallback};
+use anyhow::Context;
+use futures::StreamExt;
+
+use crate::notify::Notifier;
 
 use self::{cfg::PowerConfig, system::PowerSupplyType};
 
@@ -20,18 +23,11 @@ pub struct PowerManager {
 }
 
 impl PowerManager {
-    pub fn start(
-        config: PowerConfig,
-        on_failure: ResultCallback,
-        notifier: Notifier,
-    ) -> Result<(), anyhow::Error> {
+    pub async fn run(config: PowerConfig, notifier: Notifier) -> Result<(), anyhow::Error> {
         let manager = Self::new(config, notifier)?;
-        std::thread::spawn(move || {
-            let res = catch_unwind(move || manager.run())
-                .map_err(|_err| anyhow::format_err!("power manager thread panicked"))
-                .and_then(|res| res);
-            on_failure(res);
-        });
+        tokio::task::spawn_local(async move { manager.run_loop().await })
+            .await
+            .context("PowerManager failed")??;
 
         Ok(())
     }
@@ -46,17 +42,46 @@ impl PowerManager {
         })
     }
 
-    fn run(mut self) -> Result<(), anyhow::Error> {
+    async fn run_loop(mut self) -> Result<(), anyhow::Error> {
+        // Listen to udev power_supply events to learn of state changes as
+        // quickly as possible.
+        let builder = tokio_udev::MonitorBuilder::new()
+            .expect("Couldn't create builder")
+            .match_subsystem("power_supply")
+            .context("could not create power_supply filter")?;
+
+        let mut stream: tokio_udev::AsyncMonitorSocket = builder
+            .listen()
+            .context("Couldn't listen on udev socket")?
+            .try_into()
+            .context("could not create udev monitor socket")?;
+
+        eprintln!("reading udev event stream...");
+
         loop {
-            self.tick()?;
-            std::thread::sleep(std::time::Duration::from_secs(
+            self.tick().await?;
+
+            let timeout = tokio::time::sleep(std::time::Duration::from_secs(
                 self.config.refresh_interval_seconds,
             ));
+
+            // Wait for a tick timeout, or a udev power supply event.
+            tokio::select! {
+                _ = timeout => {},
+                _ev = stream.next() => {
+                    // No need to actually interpret the udev event data,
+                    // we re-parse the /sys/ data anyway.
+                    // udev is just used to get fast notifications.
+                    // TODO: maybe batch up events to prevent constant re-computations?
+                    // (unplugging will trigger two notifications, one for the
+                    // AC and one for the battery)
+                }
+            }
         }
     }
 
-    fn tick(&mut self) -> Result<(), anyhow::Error> {
-        let supplies = system::read_all_supplies()?;
+    async fn tick(&mut self) -> Result<(), anyhow::Error> {
+        let supplies = tokio::task::spawn_blocking(|| system::read_all_supplies()).await??;
 
         let ac = supplies.iter().find_map(|s| s.kind.as_main());
         let ac_online = ac.map(|s| s.online).unwrap_or(false);
@@ -79,16 +104,16 @@ impl PowerManager {
             tracing::trace!("power mode changed to plugged in");
             self.mode = PowerMode::PluggedIn;
             if let Some(alert) = &self.config.alert_battery_deactivated {
-                self.notifier
-                    .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
+                let full = alert.prepare(ALERT_GROUP_BATTERY.to_string(), variables.clone());
+                self.notifier.notify(full).await?;
             }
         } else if !ac_online && self.mode != PowerMode::Battery {
             tracing::trace!("power mode changed to battery");
             self.mode = PowerMode::Battery;
 
             if let Some(alert) = &self.config.alert_battery_activated {
-                self.notifier
-                    .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
+                let full = alert.prepare(ALERT_GROUP_BATTERY.to_string(), variables.clone());
+                self.notifier.notify(full).await?;
             }
         }
 
@@ -107,8 +132,8 @@ impl PowerManager {
                         status.enter(&new.name);
 
                         if let Some(alert) = &new.alert {
-                            self.notifier
-                                .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
+                            let full = alert.prepare(ALERT_GROUP_BATTERY.to_string(), variables);
+                            self.notifier.notify(full).await?;
                         }
                     } else {
                         let now = SystemTime::now();
@@ -119,11 +144,11 @@ impl PowerManager {
                         if let Some(alert) = &new.alert {
                             if let Some(repeat_after) = alert.repeat_after_seconds {
                                 if elapsed.as_secs() >= repeat_after {
-                                    self.notifier.notify(
-                                        alert,
-                                        Some(ALERT_GROUP_BATTERY),
-                                        &variables,
-                                    )?;
+                                    let full = alert.prepare(
+                                        ALERT_GROUP_BATTERY.to_string(),
+                                        variables.clone(),
+                                    );
+                                    self.notifier.notify(full).await?;
                                     status.last_notified_at = Some(now);
                                 }
                             }
@@ -139,8 +164,9 @@ impl PowerManager {
                     self.battery_phase = Some(status);
 
                     if let Some(alert) = &new.alert {
-                        self.notifier
-                            .notify(alert, Some(ALERT_GROUP_BATTERY), &variables)?;
+                        let full =
+                            alert.prepare(ALERT_GROUP_BATTERY.to_string(), variables.clone());
+                        self.notifier.notify(full).await?;
                     }
                 }
                 (None, Some(_status)) => {
