@@ -1,4 +1,6 @@
 
+# Actions
+
 fmt:
 	cargo fmt --all
 
@@ -12,6 +14,8 @@ fix: fmt clippyfix
 
 dump-default-config:
 	cargo run -- --dump-default-config > config.yaml
+
+# Linting
 
 check-fmt:
 	@echo Checking formatting...
@@ -37,7 +41,12 @@ check-sample-config:
 	cargo run -- --dump-default-config | diff config.yaml -
 	@echo "Sample config is up to date!"
 
-lint: check-fmt check-clippy check-sample-config check-unused-deps
+check-cargo-deny:
+	@echo "Checking for insecure dependencies..."
+	cargo deny check -A warnings
+	@echo "No insecure dependencies found!"
+
+lint: check-fmt check-clippy check-sample-config check-unused-deps check-cargo-deny
 
 test:
 	cargo test --all --all-features --locked

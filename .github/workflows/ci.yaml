@@ -23,6 +23,11 @@ jobs:
       with:
         tool: cargo-udeps
 
+    - name: Install cargo-udeps
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-deny
+
     - name: Lint
       run: make lint
 
