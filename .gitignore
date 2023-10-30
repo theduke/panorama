@@ -1,2 +1,6 @@
+# Rust build directory
 /target
+# direnv state directory
 .direnv
+# The nix build output directory
+/result
