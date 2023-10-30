@@ -28,6 +28,14 @@
 
           cargoLock.lockFile = ./Cargo.lock;
 
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
+
+          buildInputs = with pkgs; [
+            systemd
+          ];
+
           runtimeDependencies = with pkgs; [
             # Needed for the notify-send command.
             libnotify
@@ -60,10 +68,15 @@
             pkg-config
             # Required for libudev, which is included in the systemd package
             systemd
+
+            # For changelog generation
             git-cliff
+            # for the notify-send command
             libnotify
 
+            # For detecting unused Rust dependencies
             cargo-udeps
+            # For detecting insecure Rust dependencies
             cargo-deny
           ];
         };
