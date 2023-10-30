@@ -26,9 +26,13 @@ To install, you can use the flake as a dependency in your own system flake.nix.
 
 **Note**: panorama will hopefully be upstreamed into nixpkgs soon.
 
-### Install from source
+### Build & install from source
 
 If you have Rust installed, you can install easily install panorama from source:
+
+**NOTE**: You must have the libudeps library installed, and it's headers available!
+* Ubuntu: `apt-get install -y libudeps-dev`
+* ...
 
 ```
 git clone https://github.com/theduke/panorama
