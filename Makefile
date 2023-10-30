@@ -10,7 +10,7 @@ clippyfix:
 changelog:
 	git-cliff --prepend --output CHANGELOG.md
 
-fix: fmt clippyfix
+fix: clippyfix fmt
 
 dump-default-config:
 	cargo run -- --dump-default-config > config.yaml
