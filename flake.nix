@@ -58,6 +58,7 @@
           ];
           buildInputs = with pkgs; [
             pkg-config
+            # Required for libudev, which is included in the systemd package
             systemd
             git-cliff
             libnotify
