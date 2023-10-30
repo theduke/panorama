@@ -82,4 +82,19 @@ online:
     expire_after_seconds: null
     summary: Internet is unreachable - system appears to be offline!
     message: null
+fs:
+  enabled: true
+  check_interval_secs: 300
+  disk_full_warning:
+    usage_percent_limit: 95
+    device_path_exclude: null
+    fs_type_include: null
+    fs_type_exclude: null
+    alert:
+      severity: warning
+      on_startup: true
+      repeat_after_seconds: null
+      expire_after_seconds: 180
+      summary: Disk '{}' is almost full! (${usage_percent}%)
+      message: null
 

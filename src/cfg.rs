@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use anyhow::Context;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::{internet::cfg::OnlineConfig, notify::PreparedAlert, power::cfg::PowerConfig};
+use crate::{
+    fs::cfg::FsConfig, internet::cfg::OnlineConfig, notify::PreparedAlert, power::cfg::PowerConfig,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -43,6 +45,8 @@ pub struct Config {
     pub power: PowerConfig,
     #[serde(default)]
     pub online: OnlineConfig,
+    #[serde(default)]
+    pub fs: FsConfig,
 }
 
 impl Config {
