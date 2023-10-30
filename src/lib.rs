@@ -21,8 +21,9 @@ pub struct App {
 
 impl App {
     pub async fn run(config: Config) -> Result<(), anyhow::Error> {
+        // Everything runs in a single-threaded tokio runtime, so a LocalSet can
+        // be used to avoid send/sync issues.
         let local = tokio::task::LocalSet::new();
-
         local
             .run_until(async move { Self::run_inner(config).await })
             .await
@@ -34,12 +35,15 @@ impl App {
         let mut tasks = FuturesUnordered::<BoxFuture<'static, Result<(), anyhow::Error>>>::new();
 
         if config.power.enabled {
-            let fut = PowerManager::run(config.power.clone(), notifier.clone());
+            let fut = PowerManager::start(config.power.clone(), notifier.clone());
             tasks.push(Box::pin(fut));
         }
-
         if config.online.enabled {
             let fut = OnlineManager::start(config.online.clone(), notifier.clone());
+            tasks.push(Box::pin(fut));
+        }
+        if config.fs.enabled {
+            let fut = fs::FsManager::start(config.fs.clone(), notifier.clone());
             tasks.push(Box::pin(fut));
         }
 

@@ -23,9 +23,9 @@ pub struct PowerManager {
 }
 
 impl PowerManager {
-    pub async fn run(config: PowerConfig, notifier: Notifier) -> Result<(), anyhow::Error> {
+    pub async fn start(config: PowerConfig, notifier: Notifier) -> Result<(), anyhow::Error> {
         let manager = Self::new(config, notifier)?;
-        tokio::task::spawn_local(async move { manager.run_loop().await })
+        tokio::task::spawn_local(async move { manager.run().await })
             .await
             .context("PowerManager failed")??;
 
@@ -42,7 +42,7 @@ impl PowerManager {
         })
     }
 
-    async fn run_loop(mut self) -> Result<(), anyhow::Error> {
+    async fn run(mut self) -> Result<(), anyhow::Error> {
         // Listen to udev power_supply events to learn of state changes as
         // quickly as possible.
         let builder = tokio_udev::MonitorBuilder::new()
@@ -81,7 +81,7 @@ impl PowerManager {
     }
 
     async fn tick(&mut self) -> Result<(), anyhow::Error> {
-        let supplies = tokio::task::spawn_blocking(|| system::read_all_supplies()).await??;
+        let supplies = tokio::task::spawn_blocking(system::read_all_supplies).await??;
 
         let ac = supplies.iter().find_map(|s| s.kind.as_main());
         let ac_online = ac.map(|s| s.online).unwrap_or(false);

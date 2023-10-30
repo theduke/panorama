@@ -119,8 +119,8 @@ impl Notifier {
         };
         let join = tokio::task::spawn_local(async move {
             let mut state = state;
-            let res = state.run().await;
-            res
+
+            state.run().await
         });
 
         let s = Self { sender: tx };
