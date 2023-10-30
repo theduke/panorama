@@ -80,5 +80,15 @@ ci: lint test
 	@echo "All CI checks passed!"
 	@echo ""
 
+test-nix:
+	@echo "Testing nix package build..."
+	nix build
+	@echo "Build succeeded"
+	@echo "Making sure binary works..."
+	./result/bin/panorama --help
+	@echo "Binary works!"
+	@echo "Nix tests passed!"
+	@echo ""
+
 .phony:
 	echo hello
