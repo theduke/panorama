@@ -7,7 +7,7 @@ mod udev;
 
 use anyhow::Context;
 use cfg::Config;
-use futures::{future::BoxFuture, stream::FuturesUnordered, StreamExt};
+use futures::{future::LocalBoxFuture, stream::FuturesUnordered, StreamExt};
 use power::PowerManager;
 
 use crate::internet::OnlineManager;
@@ -32,7 +32,8 @@ impl App {
     pub async fn run_inner(config: Config) -> Result<(), anyhow::Error> {
         let (notifier, notifier_join) = notify::Notifier::start();
 
-        let mut tasks = FuturesUnordered::<BoxFuture<'static, Result<(), anyhow::Error>>>::new();
+        let mut tasks =
+            FuturesUnordered::<LocalBoxFuture<'static, Result<(), anyhow::Error>>>::new();
 
         if config.power.enabled {
             let fut = PowerManager::start(config.power.clone(), notifier.clone());
