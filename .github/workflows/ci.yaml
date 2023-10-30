@@ -28,9 +28,5 @@ jobs:
       with:
         tool: cargo-deny
 
-    - name: Lint
-      run: make lint
-
-    - name: Test
-      run: make test
-
+    - name: Lint and test
+      run: make ci

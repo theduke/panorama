@@ -46,10 +46,19 @@ check-cargo-deny:
 	cargo deny check -A warnings
 	@echo "No insecure dependencies found!"
 
-lint: check-fmt check-clippy check-sample-config check-unused-deps check-cargo-deny
+pre_lint:
+	@echo "Running all lints..."
+
+lint: pre_lint check-fmt check-clippy check-sample-config check-unused-deps check-cargo-deny
+	@echo "All checks passed!"
 
 test:
+	@echo "Running all tests..."
 	cargo test --all --all-features --locked
+	@echo "All tests passed!"
+
+ci: lint test
+	@echo "All CI checks passed!"
 
 .phony:
 	echo hello
